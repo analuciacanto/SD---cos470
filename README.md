@@ -4,10 +4,18 @@ Projeto para o desenvolvimento dos trabalhos práticos da disciplina de Sistemas
 
 ## Compilação e execução
 
-### Sinais 
+### Clonando o repositório 
+
+
+```sh
+git clone https://github.com/analuciacanto/cos470.git
+cd cos470
+```
+
+#### Sinais 
 Em construção
 
-### Pipes
+#### Pipes
 
 ```sh
 cd TP1/pipes/src
@@ -16,7 +24,7 @@ gcc index.c -o pipes
 
 ```
 
-### Sockets
+#### Sockets
 
 Pra subir o servidor 
 
