@@ -60,7 +60,6 @@ int main()
     listen(server_sock, 5);
     printf("Listening...\n");
 
-    // loop infinito
     while (1)
     {
         addr_size = sizeof(client_addr);

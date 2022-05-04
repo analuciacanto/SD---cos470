@@ -37,7 +37,10 @@ int main()
     printf("Connected to the server.\n");
 
     int max = 0;
-    while (max < 10)
+    printf("Quantos números aleatórios gostaria de gerar e conferir se é primo?\n");
+    scanf("%d", &max);
+
+    while (max > 0)
     {
         // Gerando os número
         int num = (1 + rand() % 100);
@@ -53,7 +56,7 @@ int main()
         recv(sock, buffer, sizeof(buffer), 0);
         printf("Server: %s\n", buffer);
 
-        max++;
+        max--;
     }
     bzero(buffer, 1024);
     strcpy(buffer, "0");
