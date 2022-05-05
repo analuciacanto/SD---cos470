@@ -18,7 +18,7 @@ cd cos470
 ```sh
 cd TP1/signals/src
 gcc consumer.c -o consumer
-./pipes
+./consumer
 
 ```
 
