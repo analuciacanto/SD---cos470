@@ -22,13 +22,15 @@ gcc consumer.c -o consumer
 
 ```
 
+O consumidor irá pedir a forma de espera e irá mostrar o id do processo para usar no produtor. 
+
 Abra outro terminal para executar o produtor
 
 
 ```sh
 cd TP1/signals/src
 gcc producer.c -o producer
-./client
+./producer
 
 ```
 
