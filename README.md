@@ -13,7 +13,25 @@ cd cos470
 ```
 
 #### Sinais 
-Em construção
+
+
+```sh
+cd TP1/signals/src
+gcc consumer.c -o consumer
+./pipes
+
+```
+
+Abra outro terminal para executar o produtor
+
+
+```sh
+cd TP1/signals/src
+gcc producer.c -o producer
+./client
+
+```
+
 
 #### Pipes
 

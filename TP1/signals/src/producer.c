@@ -1,24 +1,36 @@
-#include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
+#include <stdlib.h>
 #include <signal.h>
-#include <sys/stat.h>
+#include <unistd.h>
 #include <errno.h>
 
-int main(){
-    int signal;
+int main()
+{
     pid_t pid;
-    printf("Digite o id do processo:\n");
-    scanf("%d",&pid);
-    printf("Digite o sinal que deseja enviar:\n");
-    scanf("%d",&signal);
-    struct stat sts;
-    if (stat("/proc/<pid>", &sts) == -1 && errno == ENOENT) {
-        perror("pid não existe");
+
+    int signal;
+
+    printf("Insira o número do processo que gostaria de enviar o sinal\n");
+    scanf("%d", &pid);
+
+    printf("Insira o sinal que gostaria de enviar ao processo\n");
+    scanf("%d", &signal);
+
+    // Enviando o sinal para o processo escolhido
+    kill(pid, signal);
+
+    // Tratando erros.
+    switch (errno)
+    {
+    case EPERM:
+        printf("Sem permissão para enviar\n");
+        break;
+    case EINVAL:
+        printf("O sinal é inválido\n");
+        break;
+    case ESRCH:
+        printf("O processo é inválido\n");
+        break;
     }
-    else{
-        kill(pid,signal);
-    }
-    
     return 0;
 }

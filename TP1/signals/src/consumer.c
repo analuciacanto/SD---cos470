@@ -1,44 +1,54 @@
 #include <stdio.h>
 #include <signal.h>
 #include <unistd.h>
-#include <time.h>
 
-void my_handler1(int signum)
+void signalHandler_1(int signum)
 {
-    printf("Dentro da função 1\n");
+    printf("\n O Sinal 1 foi recebido.\n");
 }
-void my_handler2(int signum)
+
+void signalHandler_2(int signum)
 {
-    printf("Dentro da função 2\n");
+    printf("\n O Sinal 2 foi recebido.\n");
 }
-void my_handler3(int signum)
+
+void signalHandler_3(int signum)
 {
-    printf("Dentro da função 3\n");
+    printf("\n O Sinal 3 foi recebido.\n");
 }
-int main()
+
+int main(int argc, char *argv[])
 {
-    int waiting;
-    signal(SIGINT, my_handler1);
-    signal(SIGTERM, my_handler2);
-    signal(SIGILL, my_handler3); // registrando sinais
-    srand(time(0));
-    waiting = rand(1);
-    if (waiting == 0)
+
+    signal(1, signalHandler_1);
+    signal(2, signalHandler_2);
+    signal(3, signalHandler_3);
+
+    int waitType;
+
+    printf("\n Digite 0 para executar com busy wait e 1 para executar com blocking wait\n");
+    scanf("%d", &waitType);
+    printf("\n O id do processo é: %d\n", getpid());
+
+    if (waitType == 0)
     {
         while (1)
         {
-            printf("Dentro da main\n"); // busy
-            sleep(1);
+            printf("Esperando um sinal em busy wait...\n");
+            sleep(2);
+        }
+    }
+    else if (waitType == 1)
+    {
+        while (1)
+        {
+            printf("Esperando um sinal em block wait...\n");
+            pause();
         }
     }
     else
     {
-        while (1)
-        {
-            printf("Dentro da main\n");
-            pause(); // blocking
-        }
+        printf("Erro na escolha do método de espera");
     }
-
     return 0;
 }

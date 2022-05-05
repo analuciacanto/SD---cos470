@@ -13,7 +13,7 @@ int main()
     int sock;
     struct sockaddr_in addr;
     socklen_t addr_size;
-    char buffer[1024];
+    char buffer[20];
     int n;
 
     // Criando o socket
