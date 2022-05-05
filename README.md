@@ -13,7 +13,15 @@ cd cos470
 ```
 
 #### Sinais 
-Em construção
+Para o primeiro programa
+
+```sh
+cd TP1/signals/src/producer.c
+```
+Para o segundo  programa
+```sh
+cd TP1/signals/src/consumer.c
+```
 
 #### Pipes
 
