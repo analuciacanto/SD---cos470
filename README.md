@@ -11,7 +11,7 @@ git clone https://github.com/analuciacanto/cos470.git
 cd cos470
 ```
 
-##TP1
+## TP1
 
 #### Sinais 
 
