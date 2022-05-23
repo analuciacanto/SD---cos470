@@ -2,15 +2,16 @@
 
 Projeto para o desenvolvimento dos trabalhos práticos da disciplina de Sistemas Distribuídos ministrada na UFRJ. 
 
-## Compilação e execução
 
-### Clonando o repositório 
+## Clonando o repositório 
 
 
 ```sh
 git clone https://github.com/analuciacanto/cos470.git
 cd cos470
 ```
+
+##TP1
 
 #### Sinais 
 
