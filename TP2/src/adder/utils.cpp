@@ -2,9 +2,9 @@
 
 using namespace std;
 
-vector<vector<int>> splitVectorIntoChunks(const vector<int> &source, size_t chunkSize)
+vector<vector<char>> splitVectorIntoChunks(const vector<char> &source, size_t chunkSize)
 {
-    vector<vector<int>> result;
+    vector<vector<char>> result;
     result.reserve((source.size() + chunkSize - 1) / chunkSize);
 
     auto start = source.begin();

@@ -26,27 +26,31 @@ void release(atomic_flag *lock)
     lock->clear();
 }
 
-vector<int> populateVector(int size)
+vector<char> populateVector(int size)
 {   //Gerando vetores de tamanho size com números aleatróios entre [-100,100]
-    vector<int> array;
+    vector<char> array;
     for (int i = 0; i < size; i++)
     {
         int num = (rand() % 201) - 100;  
-        array.push_back(num);
+        array.push_back((char) num);
     }
     return array;
 }
 
-void sumVector(vector<int> vectorToSum, int numThreads ){
-    int sum = accumulate(vectorToSum.begin(), vectorToSum.end(), 0);  // Somando o vetor
+void sumVector(vector<char> vectorToSum, int numThreads ){
+   
+    int localSum;
+    for (int i=0; i<vectorToSum.size(); i++){
+          localSum += (int) vectorToSum[i]; 
+    }
     acquire(&lock_stream);  
-    //Região crítica  
-    totalSum += sum;          
+    //Região crítica
+    totalSum += localSum;
     release(&lock_stream);     
 }
 
 
-float adderWithSpinlocks(vector<int>  numbersVector, int K, int N) {
+float adderWithSpinlocks(vector<char>  numbersVector, int K, int N) {
 
         double totalTime = 0;
 
@@ -55,7 +59,7 @@ float adderWithSpinlocks(vector<int>  numbersVector, int K, int N) {
 
 
         //Dividindo o vetor em subvetores
-        vector<vector<int>> vectorOfChunks = splitVectorIntoChunks(numbersVector, vectorSize);
+        vector<vector<char>> vectorOfChunks = splitVectorIntoChunks(numbersVector, vectorSize);
         
         vector<thread> v;
 
@@ -64,7 +68,7 @@ float adderWithSpinlocks(vector<int>  numbersVector, int K, int N) {
 
         for (int i = 0; i < K ; i++)
         {
-            vector<int> chunk = vectorOfChunks[i];            
+            vector<char> chunk = vectorOfChunks[i];            
             thread thread_n(sumVector, chunk, i);
             v.push_back((thread &&)(thread_n));
         }
@@ -89,7 +93,7 @@ float execute(int K, int N){
 
     int numberOfExecutions = 10;  
     double totalTimeForNumberOfExecutions = 0;
-    vector<int> numbersVector = populateVector(N); //Populando o vetor de tamanho N com números no intervalo [-100,100] 
+    vector<char> numbersVector = populateVector(N); //Populando o vetor de tamanho N com números no intervalo [-100,100] 
 
      for (int i = 1; i <= numberOfExecutions; i++)    {
          totalTimeForNumberOfExecutions+= adderWithSpinlocks(numbersVector, K, N);
@@ -109,25 +113,45 @@ float execute(int K, int N){
 
 
 int main(){
-   
-    vector<double> totalTime;
-    vector<double> nThreads;
 
-    for (int n = 10000000; n <=1000000000;){
-        for (int k = 1; k <=  1;){
-            
-            totalTime.push_back(execute(k, n));
-            nThreads.push_back(k);
-            k = k*2;
-        }
-        n = n*10; 
-    }
-    
+  //  freopen( "output.txt", "w", stdout );
+     
     RGBABitmapImageReference *imageReference = CreateRGBABitmapImageReference();
-    
+
     StringReference *errorMessage = new StringReference();
-    
-    bool success = DrawScatterPlot(imageReference, 600, 400, &totalTime, &nThreads, errorMessage);
+    bool success;
+
+    for (int n = 10000000; n<= 1000000000;){
+
+        vector<double> totalTime;
+        vector<double> nThreads;
+
+        for (int k = 1; k <=  256;){         
+        totalTime.push_back(execute(k, n));
+        nThreads.push_back(k);
+        k = k*2;
+        }        
+
+        ScatterPlotSeries *series = GetDefaultScatterPlotSeriesSettings();
+        series->xs = &nThreads;
+        series->ys = &totalTime;
+        series->lineType = toVector(L"dashed");
+      
+        series->color =  CreateRGBColor( (float)(rand())  ,  (float)(rand()) ,  (float)(rand()) );     
+   
+
+        ScatterPlotSettings *settings = GetDefaultScatterPlotSettings();
+        settings->width = 1200;
+        settings->height = 800;      
+        settings->autoPadding = true;
+        settings->xLabel = toVector(L"K");
+        settings->yLabel = toVector(L"t(s)");
+        settings->scatterPlotSeries->push_back(series);
+        settings->showGrid = false;
+        
+        success = DrawScatterPlotFromSettings(imageReference, settings, errorMessage);    
+        n=n*10;             
+    } 
 
     if(success){
         vector<double> *pngdata = ConvertToPNG(imageReference->image);
