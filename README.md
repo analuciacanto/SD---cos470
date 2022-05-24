@@ -66,6 +66,21 @@ gcc client.c -o client
 
 ```
 
+## TP2
+
+### Somador
+
+#### Pré requisitos
+Compilador C++ >= 11. 
+
+#### Instruções para compilar
+```sh
+cd TP2/adder/src
+g++-11 index.cpp -o adder -lpthread
+./adder
+
+```
+
 ## Configuração para Desenvolvimento
 
 Para instalação do compilador no ambiente linux (ubuntu), podem ser efetudas as seguintes etapas:
