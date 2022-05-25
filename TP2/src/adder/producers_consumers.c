@@ -1,8 +1,3 @@
-// Para compilar
-//gcc -Wall sd.c -o sd.out -lpthread -lrt
-// Para testar
-//./sd.out 1 1 100 0
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
