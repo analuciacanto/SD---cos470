@@ -129,7 +129,7 @@ void *consumer(){
 			}
 		}
 		
-		if (verbose >= 3){
+	else if (verbose >= 3){
 			printf("%d não é primo.\n", product);	
 		}
 
