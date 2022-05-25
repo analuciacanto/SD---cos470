@@ -197,7 +197,7 @@ int main (int argc, char *argv[]) {
     sem_destroy(&full);
     sem_destroy(&enough_produced);
     sem_destroy(&enough_consumed);
-	free(buffer);
+    free(buffer);
 
     finish = clock();
     double time_taken = ((double)(finish - start)) / CLOCKS_PER_SEC;;  // in seconds
