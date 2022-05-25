@@ -7,9 +7,7 @@
 #include <atomic>
 #include "./utils.cpp"
 #include <cstring>
-#include "gnuplot-iostream.h"
-#include "./supportLib.cpp"
-#include "./pbPlots.cpp"
+#include <fstream>
 
 using namespace std;
 
@@ -108,58 +106,25 @@ float execute(int K, int N){
 
      
     return  totalTimeForNumberOfExecutions/numberOfExecutions;
-
 }
+
 
 
 int main(){
 
-  //  freopen( "output.txt", "w", stdout );
-     
-    RGBABitmapImageReference *imageReference = CreateRGBABitmapImageReference();
-
-    StringReference *errorMessage = new StringReference();
-    bool success;
+    ofstream resultFile;
+    resultFile.open("results.csv"); 
+    resultFile << "Número de Threads" << "," << "Tempo(s)" << endl;     
 
     for (int n = 10000000; n<= 1000000000;){
-
-        vector<double> totalTime;
-        vector<double> nThreads;
-
+      
         for (int k = 1; k <=  256;){         
-        totalTime.push_back(execute(k, n));
-        nThreads.push_back(k);
+            resultFile << to_string(k)  <<  "," << to_string(execute(k, n))  << endl;          
         k = k*2;
         }        
-
-        ScatterPlotSeries *series = GetDefaultScatterPlotSeriesSettings();
-        series->xs = &nThreads;
-        series->ys = &totalTime;
-        series->lineType = toVector(L"dashed");
-      
-        series->color =  CreateRGBColor( (float)(rand())  ,  (float)(rand()) ,  (float)(rand()) );     
-   
-
-        ScatterPlotSettings *settings = GetDefaultScatterPlotSettings();
-        settings->width = 1200;
-        settings->height = 800;      
-        settings->autoPadding = true;
-        settings->xLabel = toVector(L"K");
-        settings->yLabel = toVector(L"t(s)");
-        settings->scatterPlotSeries->push_back(series);
-        settings->showGrid = false;
-        
-        success = DrawScatterPlotFromSettings(imageReference, settings, errorMessage);    
+     
         n=n*10;             
-    } 
-
-    if(success){
-        vector<double> *pngdata = ConvertToPNG(imageReference->image);
-        WriteToFile(pngdata, "example1.png");
-        DeleteImage(imageReference->image);
-	}else{
-	   printf("Houve erro ao gerar gráfico");
-	}
+    }    
 
     return 0;
 }
