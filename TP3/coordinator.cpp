@@ -27,7 +27,6 @@
 
 #define BUFFER_SIZE 1024
 
-
 using namespace std;
 
 uint64_t getTime() {
@@ -36,7 +35,7 @@ uint64_t getTime() {
 }
 
 void writeLog(string pid, string message)
-{	string msg;
+{	string msg = "";
 	if (message == " 1")
 		msg = "REQUEST";
 	else if (message == " 2")
@@ -46,14 +45,14 @@ void writeLog(string pid, string message)
 	
     fstream myfile;
     myfile.open ("console.log",ios_base::app);
-	myfile << "Hora: " << getTime() << "  |  " << "Mensagem: " << msg << "  |  " << "Processo: " << pid <<endl;
+	myfile << "Hora: " << getTime() << "  |  " << "Mensagem: " << msg << "  |  " << "Processo: " << pid << endl;
     myfile.close();
 }
 
 
-class centralizedMutex
+class MessagesManager
 {	
-	//Mutex para gerenciar a exclusão mútura
+	//Mutex para gerenciar a região crítica
 	mutex mutexem;
 
 	queue<pair<string, int>> q;
@@ -84,7 +83,7 @@ class centralizedMutex
 	}
 	
 	public:
-		centralizedMutex(){};
+		MessagesManager(){};
 		void request(string pid, int n_socket)
 		{
 			mutexem.lock();
@@ -117,39 +116,36 @@ class centralizedMutex
 		}
 };
 
-centralizedMutex cmutex;
-
+MessagesManager cmutex;
 
 int server()
 {
 	int opt = TRUE;
-	int master_socket , addrlen , new_socket ,
+	int coordinator_socket , addrlen , new_socket ,
 		max_clients = 129 , activity, i , valread , sd;
 	int max_sd;
 	int manager_socket;
 	struct sockaddr_in address;
 
-	vector<int> client_socket;
+	vector<int> socket_queue;
 		
 	char buffer[BUFFER_SIZE]; 
 		
-	//set of socket descriptors
-	fd_set readfds;
+	fd_set read_fd_set;
 			
-	//inicia client_socket[] em 0
 	for (i = 0; i < max_clients; i++)
 	{
-		client_socket.push_back(0);
+		socket_queue.push_back(0);
 	}
 		
-	//cria master socket
-	if( (master_socket = socket(AF_INET , SOCK_STREAM , 0)) == 0)
+	//Criando o socket coordenador
+	if( (coordinator_socket = socket(AF_INET , SOCK_STREAM , 0)) == 0)
 	{
 		perror("socket failed");
 		exit(EXIT_FAILURE);
 	}	
 
-	if( setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt,
+	if( setsockopt(coordinator_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt,
 		sizeof(opt)) < 0 )
 	{
 		perror("setsockopt");
@@ -160,62 +156,53 @@ int server()
 	address.sin_addr.s_addr = INADDR_ANY;
 	address.sin_port = htons( PORT );
 		
-	if (bind(master_socket, (struct sockaddr *)&address, sizeof(address))<0)
+	if (bind(coordinator_socket, (struct sockaddr *)&address, sizeof(address))<0)
 	{
 		perror("bind failed");
 		exit(EXIT_FAILURE);
 	}
 
-	//finaliza criação da master socket		
-
-
-	//maximo de 3 conexões pendentes para o master socket
-	if (listen(master_socket, 3) < 0)
+	
+	if (listen(coordinator_socket, 3) < 0)
 	{
 		perror("listen");
 		exit(EXIT_FAILURE);
 	}
 		
-	//aceita a conexão
 	addrlen = sizeof(address);
 	puts("Waiting for connections ...");
 	
 	while(TRUE)
-	{
-		//limpa o set de sockets
-		FD_ZERO(&readfds);
+	{ /* Trechos de código retirado de: https://www.gta.ufrj.br/ensino/eel878/sockets/selectman.html*/
+
+		FD_ZERO(&read_fd_set);
 	
-		//adiciona master socket a set
-		FD_SET(master_socket, &readfds);
-		max_sd = master_socket;
+		FD_SET(coordinator_socket, &read_fd_set);
+		max_sd = coordinator_socket;
 			
-		//adiciona child sockets ao set
 		for ( i = 0 ; i < max_clients ; i++)
 		{
-			//socket descriptor
-			sd = client_socket[i];
+			sd = socket_queue[i];
 				
-			//se socket descriptor é valido, adicionar na read list
 			if(sd > 0)
-				FD_SET( sd , &readfds);
+				FD_SET( sd , &read_fd_set);
 				
-			//necessario para o select
 			if(sd > max_sd)
 				max_sd = sd;
 		}
 	
-		//espera por uma atividade em um dos sockets
-		activity = select( max_sd + 1 , &readfds , NULL , NULL , NULL);
+		//Espera por uma atividade em um dos sockets
+		/*Código com ajuda do vídeo https://www.youtube.com/watch?v=Y6pFtgRdUts*/
+		activity = select( max_sd + 1 , &read_fd_set , NULL , NULL , NULL);
 	
 		if ((activity < 0) && (errno!=EINTR))
 		{
 			printf("select error");
 		}
 			
-		//Se é no master socket, então é uma nova conexão
-		if (FD_ISSET(master_socket, &readfds))
+		if (FD_ISSET(coordinator_socket, &read_fd_set))
 		{
-			if ((new_socket = accept(master_socket,
+			if ((new_socket = accept(coordinator_socket,
 					(struct sockaddr *)&address, (socklen_t*)&addrlen))<0)
 			{
 				perror("accept");
@@ -223,47 +210,42 @@ int server()
 			}
 			
 
-			//adciona novo socket na array de sockets
+			//Cada vez que o coordinator_socket recebe uma nova conexão, adiciona na socket_queue
 			for (i = 0; i < max_clients; i++)
 			{
-				if( client_socket[i] == 0 )
+				if( socket_queue[i] == 0 )
 				{
-					client_socket[i] = new_socket;
-					//printf("Adding to list of sockets as %d\n" , i);
+					socket_queue[i] = new_socket;
 						
 					break;
 				}
 			}
 		}
 			
-		//se não, é algo acontecendo em um dos outros sockets
+		//Caso não seja uma conexão, é uma mensagem, portanto envia a mensagem para o manager lidar. 
 		for (i = 0; i < max_clients; i++)
 		{
-			sd = client_socket[i];
+			sd = socket_queue[i];
 				
-			if (FD_ISSET( sd , &readfds))
+			if (FD_ISSET( sd , &read_fd_set))
 			{
-				//lê a mensagem e verifica se esta fechando conexão
 				if ((valread = read( sd , buffer, BUFFER_SIZE)) == 0)
 				{
 					getpeername(sd , (struct sockaddr*)&address , \
 						(socklen_t*)&addrlen);
 				
 					close( sd );
-					client_socket[i] = 0;
+					socket_queue[i] = 0;
 				}
 					
-				//Processar mensagem recebida
 				else
 				{
 					string received(buffer);
-					//mensagem que estabelece o socket do manager
 					if (received.find("manager")!= string::npos)
 					{
 						manager_socket = sd;
 					}
 					else
-					//envia mensagem recebida ao manager
 					{
 						string str_socket = to_string(sd);
 						string answer = received + "|" + str_socket;						
@@ -276,10 +258,9 @@ int server()
 	return 0;
 }
 
-int manager()
-{
-	//identico ao cliente
-	int server_sock = 0, n;
+
+int connect(){
+	int server_sock = 0;
     struct sockaddr_in serv_addr;
 
     if ((server_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
@@ -303,8 +284,19 @@ int manager()
         return -1;
     }
 	printf("Servidor pronto");
+	return server_sock;
+
+}
+
+int manager()
+{
+	//O manager se conecta como cliente ao socket coordenador
+
+	int server_sock = 0, n;
+	server_sock = connect();
 	string str_manager = "manager";
-	//envia mensagem se identificando como manager
+	
+	//Envia mensagem ao socket se identificando e mostrando que está ali.
 	n = send(server_sock , str_manager.c_str(), BUFFER_SIZE, 0);
 		if (n < 0)
 		{
@@ -315,7 +307,7 @@ int manager()
 	int count = 0;
 	while(TRUE)
 	{
-		//lê mensagem do servidor
+		//Pega a mensagem do servidor
 		n = read( server_sock , buffer, BUFFER_SIZE);
 		if (n < 0)
 		{
@@ -323,24 +315,24 @@ int manager()
 			exit(1);
 		}
 		string server_response(buffer);
-		//cout << server_response << endl;
+
 		stringstream test(server_response);
 		string segment;
-		vector<string> seglist;
+
+		vector<string> messageSplit;
 
 		while(getline(test, segment, '|'))
 		{
-			seglist.push_back(segment);
+			//Separando a mensagem pela | e adicionando em uma lista
+			messageSplit.push_back(segment);
 		}
-		if (seglist[0] == "1") //se REQUEST
+		if (messageSplit[0] == "1") 
 		{
-			//cout << seglist[2] << endl;
-			cmutex.request(seglist[1],stoi(seglist[2]));
+			cmutex.request(messageSplit[1],stoi(messageSplit[2]));
 		}
-		else if (seglist[0] == "3") //se RELEASE
+		else if (messageSplit[0] == "3") 
 		{
-			//cout << seglist[2] << endl;
-			cmutex.release(seglist[1]);
+			cmutex.release(messageSplit[1]);
 		}
 	}
 	close(server_sock);

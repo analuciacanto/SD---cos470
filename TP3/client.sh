@@ -22,7 +22,7 @@ rm resultado.txt
 #TESTE 1
 
 
-for i in 1 2 4 8 16 32;
+for i in 2 4 8 16 32;
 do
     for j in $(seq 1 $i);
     do
@@ -40,7 +40,7 @@ done
 
 #TESTE 2
 
-for i in 1 2 4 8 16 32 64;
+for i in 2 4 8 16 32 64;
 do
     for j in $(seq 1 $i);
     do
@@ -59,7 +59,7 @@ done
 
 #TESTE 3
 
-for i in 1 2 4 8 16 32 64 128;
+for i in 2 4 8 16 32 64 128;
 do
     for j in $(seq 1 $i);
     do

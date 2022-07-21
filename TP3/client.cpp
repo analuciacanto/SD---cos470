@@ -1,4 +1,3 @@
-// Client side C/C++ program to demonstrate Socket programming
 #include <stdio.h>
 #include <iostream>
 #include <sys/socket.h>
@@ -73,7 +72,7 @@ int request(int sock, int r, int k){
     for (int i = 0; i < r; i++)
     {
         message = REQUEST + mypid;
-        cout << message << endl;
+        cout << "REQUEST" << endl;
 
         //envia request ao servidor
         n = send(sock , message.c_str(), BUFFER_SIZE, 0);
@@ -92,12 +91,12 @@ int request(int sock, int r, int k){
             printf("Erro lendo do socket");
             exit(1);
         }
-        cout << buffer << endl;
         string received(buffer);
 
         //se recebeu GRANT, escreve no arquivo
         if (received.find("2")!= string::npos)
         {
+            cout << "GRANT" << endl;
             write();
         }
         sleep(k);
@@ -105,7 +104,7 @@ int request(int sock, int r, int k){
         //envia RELEASE ao servidor
         string release = "3|";
         message = release + mypid;
-        cout << message << endl;
+        cout << "RELEASE" << endl;
         n = send(sock , message.c_str(), BUFFER_SIZE, 0);
         
     }
