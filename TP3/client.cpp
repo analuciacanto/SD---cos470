@@ -95,7 +95,6 @@ int request(int sock, int r, int k){
         cout << buffer << endl;
         string received(buffer);
 
-
         //se recebeu GRANT, escreve no arquivo
         if (received.find("2")!= string::npos)
         {
@@ -110,6 +109,7 @@ int request(int sock, int r, int k){
         n = send(sock , message.c_str(), BUFFER_SIZE, 0);
         
     }
+    return 0;
 }
    
 int main(int argc, char const *argv[])

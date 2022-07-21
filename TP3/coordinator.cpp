@@ -30,11 +30,23 @@
 
 using namespace std;
 
-void writeLog(string message)
-{
+uint64_t getTime() {
+  using namespace std::chrono;
+  return duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
+}
+
+void writeLog(string pid, string message)
+{	string msg;
+	if (message == " 1")
+		msg = "REQUEST";
+	else if (message == " 2")
+		msg = "GRANT";
+	else if (message == " 3")
+		msg= "RELEASE";
+	
     fstream myfile;
-    myfile.open ("log.log",ios_base::app);
-    myfile << message  << endl;
+    myfile.open ("console.log",ios_base::app);
+	myfile << "Hora: " << getTime() << "  |  " << "Mensagem: " << msg << "  |  " << "Processo: " << pid <<endl;
     myfile.close();
 }
 
@@ -59,7 +71,7 @@ class centralizedMutex
 		//envia GRANT ao processo
 		send(get<1>(next), message.c_str(), BUFFER_SIZE, 0);
 
-		writeLog(get<0>(next) + " 2");
+		writeLog(get<0>(next), " 2");
 
 		if (granted.find(get<0>(next)) == granted.end())
 		{
@@ -77,7 +89,7 @@ class centralizedMutex
 		{
 			mutexem.lock();
 
-			writeLog(pid + " 1");
+			writeLog(pid , " 1");
 			q.push(make_pair(pid, n_socket));
 			if (granted.find(pid) == granted.end())
 			{
@@ -93,7 +105,7 @@ class centralizedMutex
 		void release(string pid)
 		{
 			mutexem.lock();
-			writeLog(pid + " 3");
+			writeLog(pid , " 3");
 			if (q.empty())
 			{
 				lock = false;
