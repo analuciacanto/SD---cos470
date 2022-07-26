@@ -1,6 +1,6 @@
 # Executando o trabalho
 
-# Para rodar o coordenador
+## Para rodar o coordenador
 
 ```sh
 cd TP3
@@ -8,7 +8,7 @@ cd TP3
 ```
 
 
-# Para rodar o cliente
+## Para rodar o cliente
 
 ```sh
 cd TP3
